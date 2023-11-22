@@ -5,18 +5,14 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
-//TODO Forward Declaration benutzen
-#include "Components/Button.h"
-#include <Components/VerticalBox.h>
 
-
-#include <Components/Slider.h>
-#include <Components/CheckBox.h>
-
-
+class UButton;
+class UVerticalBox;
+class USlider;
+class UCheckBox;
 class UTextBlock;
 
-//Game Options Referenz um das gehen über die GameInstance nicht jedes mal machen zu müssen
+//Game Options Referenz to get easier Acess to the Options
 class GameOptions;
 using GameOptionsPtr = TSharedPtr<GameOptions>;
 
@@ -29,7 +25,10 @@ using GameOptionsPtr = TSharedPtr<GameOptions>;
 //using std::sharedPtr<UTextBlock> UTextBlockPtr
 
 /**
- * 
+ * Main Widget Class to Load and Hold the GUI. 
+ * Uses a Setup Method to initalise all Members.
+ * The Setup Methog get called by the Blueprint
+ * after referenzing all UI Element with the Code Equivalent.
  */
 UCLASS()
 class UMainUserWidget : public UUserWidget
@@ -41,13 +40,8 @@ public:
 
 	UMainUserWidget(const FObjectInitializer& ObjectInitializer);
 
-	virtual bool Initialize() override;
 
-	virtual void PostLoad() override;
-
-	//virtual void Tick(float Deltatime) override;
-
-	void UpdateGUIEvent(float Deltatime);
+	//void UpdateGUIEvent(float Deltatime);
 
 	UFUNCTION(BlueprintCallable)
 	void Setup();
@@ -61,6 +55,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Options();
 
+	//-----------------------
+	//Functions to call when Options Changed
 	UFUNCTION(BlueprintCallable)
 	void ChangeFoV(float value);
 
@@ -79,7 +75,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeCameraMode(bool value);
 
-	//UFUNCTION(BlueprintCallable)
+	//-----------------------
+	//Events Called During the Gameloop
 	void PlayerCaughtEvent(float DeltaTime);
 
 	void StopTimerEvent();
@@ -87,31 +84,26 @@ public:
 	void StartTimerEvent();
 
 	void PlayerWinEvent();
+	//----------------------
 
-	//void ChangeCameraMode(bool value);
-
+	//Nativ Tick to Update the Timer Clock
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-	
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-
+	//Shows the Name of The Game, The Time or the Winning Message.
 	UPROPERTY(BlueprintReadWrite,Category = UI)
-
-	//TSharedPtr<UTextBlock>
 	UTextBlock* MainTextBlock;
 
-	//UPROPERTY(BlueprintReadWrite, Category = UI)
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = ReloadButton, meta = (AllowPrivateAccess = "true"))
-	//class UButton* ReloadButton;
-
-	FString Textbob;
-
+	//The Time to as Timer in the GUI
 	float CountdownTime;
 
-	APlayerController* Controlly;
+	//The PlayerController vor easier Acess to it.
+	APlayerController* PlayerController;
 
+	//Let the tick Method tick.
 	bool IsGameRunning;
 
+	//-----------------------
+	//The different UI Elements for the Menu
 	UPROPERTY(BlueprintReadWrite, Category = UI)
 	UButton* ReloadButtonCode;
 
@@ -126,7 +118,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = UI)
 	UVerticalBox* OptionsVerticalBoxCode;
-
 
 	UPROPERTY(BlueprintReadWrite, Category = UI)
 	USlider* FoVSliderCode;
@@ -146,21 +137,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = UI)
 	UCheckBox* IsometricViewModeCheckBoxCode;
 
-	
+	//------------------------
+
+	//Local Reference of the Gameoptions
 	GameOptionsPtr GameOptions;
 
-	
-	//static friend void Options::DefaultValues();
-	/* {
-		NpcFieldOfView = int(90);
-		NpcViewingRange = int(2000);
-		NpcDifficulty = int(10);
-
-		CountdownTime = int(10);
-		WinTime = int(180);
-		realIsometricView = bool(true);
-	}
-	*/
 };
 
 

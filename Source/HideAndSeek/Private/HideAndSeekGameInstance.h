@@ -10,7 +10,7 @@
 
 
 /**
- * 
+ * Costum GameInstance to hold the GameOptions between Level Loads.
  */
 UCLASS()
 class UHideAndSeekGameInstance : public UGameInstance
@@ -19,8 +19,6 @@ class UHideAndSeekGameInstance : public UGameInstance
 
 		UHideAndSeekGameInstance();
 
-	//GameOptions* 
-	//TSharedPtr<GameOptions>
 	GameOptionsPtr Options;
 
 public:

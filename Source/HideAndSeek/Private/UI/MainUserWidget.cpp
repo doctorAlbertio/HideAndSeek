@@ -13,76 +13,20 @@
 #include "UI/GameOptions.h"
 #include <HideAndSeekGameInstance.h>
 #include <Camera/CameraComponent.h>
+#include "Components/Button.h"
+#include <Components/VerticalBox.h>
+#include <Components/Slider.h>
+#include <Components/CheckBox.h>
 
 
 UMainUserWidget::UMainUserWidget(const FObjectInitializer& ObjectInitializer)
 	: UUserWidget(ObjectInitializer),
-	Textbob("Hide And Seek"),
 	CountdownTime(10),
-	Controlly(),
+	PlayerController(),
 	IsGameRunning(true),
-	GameOptions()
+	GameOptions(),
+	MainTextBlock()
 {
-
-	
-	//CountdownTime = GameOptions->CountdownTime;
-	
-	//MainTextBlock->SetText(FText::FromString(Textbob));
-}
-
-//TODO Deprecated
-bool UMainUserWidget::Initialize()
-{
-	
-	if (Super::Initialize()) {
-		
-		//MainTextBlock->SetText(FText::FromString(Textbob));
-		
-		return true; 
-	}
-
-	
-	return false;
-}
-
-//TODO Deprecated
-void UMainUserWidget::PostLoad()
-{
-	Super::PostLoad();
-		//MainTextBlock->SetText(FText::FromString(Textbob));
-}
-
-void UMainUserWidget::UpdateGUIEvent(float Deltatime)
-{
-/*	if (MainTextBlock && IsGameRunning) {
-		CountdownTime += Deltatime;
-
-		//FString Minutes = FString("%i:&i",(int)Deltatime,(Deltatime - (int)Deltatime));
-
-		//auto ClockString = FString((int)Deltatime % 60 + ":" + (int)(Deltatime * 100));
-		//FTextFormat hi = FTextFormat()
-		//FText::Format()
-
-			//FText ClockText = FString(ClockString);//FText(FText::AsNumber((int)Deltatime) FText::FromString(":"))
-
-		auto TimeClock = UKismetStringLibrary::TimeSecondsToString(CountdownTime);
-
-		MainTextBlock->SetText(FText::FromString( TimeClock));
-
-		if (CountdownTime > -5 && CountdownTime < 0) {
-			MainTextBlock->SetColorAndOpacity(FSlateColor(FColor::Red));
-			//MainTextBlock->Color
-		}
-		else {
-			MainTextBlock->SetColorAndOpacity( FSlateColor(FColor(255, 255, 255, 255)));
-		}
-		//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString("solte im Text die Deltatime setzen ")); }
-	}
-	else
-	{
-		//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString("Ich finde kein Maintextblock ")); }
-	}
-	*/
 }
 
 void UMainUserWidget::Setup()
@@ -91,53 +35,47 @@ void UMainUserWidget::Setup()
 
 	CountdownTime = -GameOptions->CountdownTime;
 
-	MainTextBlock->SetText(FText::FromString(Textbob));
+	MainTextBlock->SetText(FText::FromString(TEXT("Hide and Seek")));
 
 	TArray<AActor*> FoundActors;
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AHideAndSeekCharacter::StaticClass(), FoundActors);
 
-	//ReloadButtonCode->SetVisibility(ESlateVisibility::Collapsed);
 
-	VerticalBoxCode->SetVisibility(ESlateVisibility::Collapsed);
 
-	auto lauf = FoundActors.begin();
+	//auto lauf = FoundActors.begin();
 
 	OptionsVerticalBoxCode->SetVisibility(ESlateVisibility::Collapsed);
 
 	FVector3d pos;
 
-	//TODO das anstatt for schleife nutzen überall
-	//auto bla = FoundActors[0]
+	if (FoundActors.Num() > 0) {
+		auto Player = Cast<AHideAndSeekCharacter>(FoundActors[0]);
 
+		Player->OnPlayerCaughtEvent.AddUObject(this, &UMainUserWidget::PlayerCaughtEvent);
 
-	for (auto i : FoundActors) {
-		//pos = i->GetActorLocation();
-		auto temp = Cast<AHideAndSeekCharacter>(i);
-		temp->OnUpdateGUIEvent.AddUObject(this, &UMainUserWidget::UpdateGUIEvent);
+		PlayerController = Player->GetLocalViewingPlayerController();
 
-		temp->OnPlayerCaughtEvent.AddUObject(this, &UMainUserWidget::PlayerCaughtEvent);
-		Controlly = temp->GetLocalViewingPlayerController();
+		Player->OnPlayerWinEvent.AddUObject(this, &UMainUserWidget::PlayerWinEvent);
 
-		temp->OnPlayerWinEvent.AddUObject(this, &UMainUserWidget::PlayerWinEvent);
+		Player->OnStartTimerEvent.AddUObject(this, &UMainUserWidget::StartTimerEvent);
 
-		temp->OnStartTimerEvent.AddUObject(this, &UMainUserWidget::StartTimerEvent);
 	}
 
 	if (GameOptions->firstStart) {
 		IsGameRunning = false;
 		VerticalBoxCode->SetVisibility(ESlateVisibility::Visible);
-		Controlly->SetInputMode(FInputModeUIOnly());
-		Controlly->bShowMouseCursor = true;
-		//GameOptions->firstStart = false;
+		PlayerController->SetInputMode(FInputModeUIOnly());
+		PlayerController->bShowMouseCursor = true;
+	}
+	else {
+		VerticalBoxCode->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
 	FScriptDelegate test = FScriptDelegate();
-	//test.GetUObject()
 	test.BindUFunction(this, FName("UMainUserWidget::ReloadLevel"));
 
-	ReloadButtonCode->OnClicked.AddDynamic(this, &UMainUserWidget::ReloadLevel); //(test);//          (this, &UMainUserWidget::ReloadLevel);
-
+	ReloadButtonCode->OnClicked.AddDynamic(this, &UMainUserWidget::ReloadLevel);
 	EndGameButtonCode->OnClicked.AddDynamic(this, &UMainUserWidget::EndGame);
 
 	OptionButtonCode->OnClicked.AddDynamic(this, &UMainUserWidget::Options);
@@ -160,24 +98,17 @@ void UMainUserWidget::Setup()
 	IsometricViewModeCheckBoxCode->OnCheckStateChanged.AddDynamic(this, &UMainUserWidget::ChangeCameraMode);
 	IsometricViewModeCheckBoxCode->SetCheckedState(ECheckBoxState(GameOptions->realIsometricView));
 
-    // OnUpdateGUIEvent.AddUObject(this, &UMainUserWidget::UpdateGUIEvent);
-	
 }
 
 void UMainUserWidget::ReloadLevel()
 {
-	//GetGameInstance()->GetWorld()->GetCurrentLevel().Relo
-
-
 
 	UGameplayStatics::OpenLevel(GetGameInstance()->GetWorld(), FName(GetGameInstance()->GetWorld()->GetCurrentLevel()->GetName()));
 
-	Controlly->SetInputMode(FInputModeGameOnly());
-	Controlly->bShowMouseCursor = false;
+	PlayerController->SetInputMode(FInputModeGameOnly());
+	PlayerController->bShowMouseCursor = false;
 
 	IsGameRunning = true;
-
-	//ReloadButtonCode->SetVisibility(ESlateVisibility::Collapsed);
 
 	VerticalBoxCode->SetVisibility(ESlateVisibility::Collapsed);
 
@@ -185,9 +116,6 @@ void UMainUserWidget::ReloadLevel()
 
 void UMainUserWidget::EndGame()
 {
-	//exit(0);
-	//FGenericPlatformMisc::RequestExit(true);
-	//GameOptions::firstStart = true;
 	UKismetSystemLibrary::QuitGame(GetWorld(),nullptr,EQuitPreference::Quit,true);
 }
 
@@ -199,29 +127,23 @@ void UMainUserWidget::Options()
 	else {
 		OptionsVerticalBoxCode->SetVisibility(ESlateVisibility::Visible);
 	}
-
-	//OptionsVerticalBoxCode->SetVisibility(! OptionsVerticalBoxCode->GetVisibility());
 }
 
 void UMainUserWidget::ChangeFoV(float value)
 {
-	GameOptions->NpcFieldOfView = FoVSliderCode->GetValue();
+	GameOptions->NpcFieldOfView = value;
 
 	TArray<AActor*> FoundActors;
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABasicNpcCharacter::StaticClass(), FoundActors);
 
-	for (auto actor : FoundActors) {
-		Cast<ABasicNpcCharacter>(actor)->SearchLight->SetOuterConeAngle(value / 2);
-	}
-
-	
+	Cast<ABasicNpcCharacter>(FoundActors[0])->SearchLight->SetOuterConeAngle(value / 2);	
 	
 }
 
 void UMainUserWidget::ChangeViewRange(float value)
 {
-	GameOptions->NpcViewingRange = ViewRangeSliderCode->GetValue();
+	GameOptions->NpcViewingRange = value;
 
 	TArray<AActor*> FoundActors;
 
@@ -236,7 +158,7 @@ void UMainUserWidget::ChangeViewRange(float value)
 
 void UMainUserWidget::ChangeDifficulty(float value)
 {
-	GameOptions->NpcDifficulty = DifficultySliderCode->GetValue();
+	GameOptions->NpcDifficulty = value;
 
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString::Printf(TEXT("slider hat den value = %i"), DifficultySliderCode->GetValue())); }
 	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString::Printf(TEXT("gameoptions hat den value = %i"), GameOptions->NpcDifficulty)); }
@@ -245,65 +167,23 @@ void UMainUserWidget::ChangeDifficulty(float value)
 
 void UMainUserWidget::ChangeCountdownTime(float value)
 {
-	//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString::Printf(TEXT("ändere countdown time mit value = %i"),value)); }
-	GameOptions->CountdownTime = CountdownSliderCode->GetValue();
-	//CountdownSliderCode->GetValue();
-
-	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString::Printf(TEXT("slider hat den value = %i"), CountdownSliderCode->GetValue())); }
-
-
-	//CountdownSliderCode->Value
-	
+	GameOptions->CountdownTime = value;
 }
 
 void UMainUserWidget::ChangeWinningTime(float value)
 {
 	GameOptions->WinTime = value;
-	//realIsometricView = bool(true);
 }
 
 void UMainUserWidget::PlayerCaughtEvent(float DeltaTime)
 {
 
-	//TArray<AActor*> FoundActors;
-
-	//UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMyProject9Character::StaticClass(), FoundActors);
-
-	//ReloadButtonCode->SetVisibility(ESlateVisibility::Visible);
-
 	VerticalBoxCode->SetVisibility(ESlateVisibility::Visible);
-
-
-	//auto bla = Cast<UWidget>(VerticalBoxCode).
-
-	//FWidgetTransform bla = VerticalBoxCode->GetRenderTransform();//.Translation()
-
-	//FWidgetTransform blau = FWidgetTransform()
-
-	//bla.Translation = FVector2D ()
-
-	//VerticalBoxCode->SetRenderTransform()
-
-	//auto lauf = FoundActors.begin();
 
 	IsGameRunning = false;
 
-
-	//FVector3d pos;
-
-	
-
-	/*for (auto i : FoundActors) {
-		//pos = i->GetActorLocation();
-		auto temp = Cast<AMyProject9Character>(i);
-		//temp->OnUpdateGUIEvent.AddUObject(this, &UMainUserWidget::UpdateGUIEvent);
-
-		//temp->OnPlayerCaughtEvent.AddUObject(this, &UMainUserWidget::PlayerCaughtEvent);
-		Controlly = temp->GetLocalViewingPlayerController();
-	}
-*/
-	Controlly->SetInputMode(FInputModeUIOnly());
-	Controlly->bShowMouseCursor = true;
+	PlayerController->SetInputMode(FInputModeUIOnly());
+	PlayerController->bShowMouseCursor = true;
 }
 
 void UMainUserWidget::StopTimerEvent()
@@ -319,14 +199,14 @@ void UMainUserWidget::StartTimerEvent()
 void UMainUserWidget::PlayerWinEvent()
 {
 	VerticalBoxCode->SetVisibility(ESlateVisibility::Visible);
-	//Textbob = FString("You won! Congratulations");
 	MainTextBlock->SetText(FText::FromString( TEXT("You won! Congratulations")));
 	IsGameRunning = false;
-	Controlly->bShowMouseCursor = true;
+	PlayerController->bShowMouseCursor = true;
 }
 
 void UMainUserWidget::ChangeCameraMode(bool value)
 {
+	//TODO die actors halten für die nutzung im button
 	TArray<AActor*> FoundActors;
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AHideAndSeekCharacter::StaticClass(), FoundActors);
@@ -345,38 +225,24 @@ void UMainUserWidget::ChangeCameraMode(bool value)
 	GameOptions->realIsometricView = value;
 }
 
-
 void UMainUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
-	Super::NativeTick(MyGeometry, InDeltaTime);
+	UUserWidget::NativeTick(MyGeometry, InDeltaTime);
 
 	if (MainTextBlock && IsGameRunning) {
 		CountdownTime += InDeltaTime;
-
-		//FString Minutes = FString("%i:&i",(int)Deltatime,(Deltatime - (int)Deltatime));
-
-		//auto ClockString = FString((int)Deltatime % 60 + ":" + (int)(Deltatime * 100));
-		//FTextFormat hi = FTextFormat()
-		//FText::Format()
-
-			//FText ClockText = FString(ClockString);//FText(FText::AsNumber((int)Deltatime) FText::FromString(":"))
 
 		auto TimeClock = UKismetStringLibrary::TimeSecondsToString(CountdownTime);
 
 		MainTextBlock->SetText(FText::FromString(TimeClock));
 
+		//Turning the timer in the last seconds red
 		if (CountdownTime > -5 && CountdownTime < 0) {
 			MainTextBlock->SetColorAndOpacity(FSlateColor(FColor::Red));
-			//MainTextBlock->Color
 		}
 		else {
 			MainTextBlock->SetColorAndOpacity(FSlateColor(FColor(255, 255, 255, 255)));
 		}
-		//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString("solte im Text die Deltatime setzen ")); }
-	}
-	else
-	{
-		//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString("Ich finde kein Maintextblock ")); }
 	}
 }
 

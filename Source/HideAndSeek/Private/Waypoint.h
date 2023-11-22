@@ -11,6 +11,10 @@ class ABasicNpcCharacter;
 
 #include "Waypoint.generated.h"
 
+/**
+*  Waypoints are invisible Actors. There are used for Navigation Purposes of the Npc Characters.
+*/
+
 UCLASS()
 class AWaypoint : public AActor
 {
@@ -20,11 +24,11 @@ public:
 	// Sets default values for this actor's properties
 	AWaypoint();
 
-	UPROPERTY(BlueprintReadWrite, Category = Waypoint)
-	ABasicNpcCharacter* TargetNpc;
+	//UPROPERTY(BlueprintReadWrite, Category = Waypoint)
+	//ABasicNpcCharacter* TargetNpc;
 
-	UPROPERTY(BlueprintReadWrite, Category = Waypoint)
-	AWaypoint* NextWaypoint;
+	//UPROPERTY(BlueprintReadWrite, Category = Waypoint)
+	//AWaypoint* NextWaypoint;
 
 protected:
 	// Called when the game starts or when spawned

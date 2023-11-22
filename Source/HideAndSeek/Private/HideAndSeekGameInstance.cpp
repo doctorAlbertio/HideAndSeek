@@ -6,12 +6,7 @@
 UHideAndSeekGameInstance::UHideAndSeekGameInstance()
 	
 {
-	//Options = GameOptions();
-	//GameOptions::DefaultValues();
-
 	Options = MakeShared<GameOptions>();
-
-	//GameOptions::firstStart = true;
 }
 
 GameOptionsPtr UHideAndSeekGameInstance::getOptions()

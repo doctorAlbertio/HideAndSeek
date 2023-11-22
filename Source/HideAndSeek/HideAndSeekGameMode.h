@@ -19,12 +19,6 @@ class AHideAndSeekGameMode : public AGameModeBase
 
 public:
 	AHideAndSeekGameMode();
-	//TODO entfernen
-	//void playCountdown();
-
-	//void addCountdownListener(void(float Time), float Triggertime);
-
-	//AAIController NpcController;
 private:
 
 	
