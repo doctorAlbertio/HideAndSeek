@@ -1,0 +1,13 @@
+Hide and Seek Controlls
+
+///////////////////////////
+
+Movement: WASD
+
+Jumping: Space
+
+Stop Level: Enter and Esc
+
+//////////////////////////
+
+Have Fun :)
