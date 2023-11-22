@@ -24,11 +24,6 @@ class AHideAndSeekCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	//	class USceneComponent* CameraBoom;
-
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
@@ -56,8 +51,10 @@ class AHideAndSeekCharacter : public ACharacter
 public:
 	AHideAndSeekCharacter();
 
+	//--------------------------
+	// Events for The Gameloop
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeEventDelegate, float Time)
-	void TimeEvent(float Time);
+	void StartNPCEvent(float Time);
 
 	FOnTimeEventDelegate OnTimeEvent;
 	
@@ -66,7 +63,6 @@ public:
 
 	FOnUpdateGUIEventDelegate OnUpdateGUIEvent;
 
-	//UPROPERTY(BlueprintCallable)
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerCaughtDelegate, float Time)
 	void PlayerCaughtEvent(float DeltaTime);
 
@@ -76,7 +72,6 @@ public:
 	void PlayerWinEvent();
 
 	FOnPlayerWinDelegate OnPlayerWinEvent;
-
 
 	DECLARE_MULTICAST_DELEGATE(FOnStartTimerEventDelegate)
 	void StartTimerEvent();
@@ -101,13 +96,10 @@ protected:
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
+	//void Look(const FInputActionValue& Value);
 
 	void Tick(const float DeltaTime) override;
 			
-	//void Crouch(const FInputActionValue& Value);
-
-	//void onTimeEvent();
 
 protected:
 	// APawn interface
@@ -125,10 +117,17 @@ public:
 
 private:
 	bool IsCountdownRunning;
+
+	//The Countdown
 	float Countdown;
 
+	//bool th deactivate the Gameloop when Lost or in Menu
+	bool IsRoundRunning;
+
+	//Local Reference of the GameOptions for easier acess.
 	GameOptionsPtr GameOptions;
 
+	//The Time 
 	float Playtime;
 };
 

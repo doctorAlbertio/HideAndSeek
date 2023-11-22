@@ -158,11 +158,7 @@ void UMainUserWidget::ChangeViewRange(float value)
 
 void UMainUserWidget::ChangeDifficulty(float value)
 {
-	GameOptions->NpcDifficulty = value;
-
-	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString::Printf(TEXT("slider hat den value = %i"), DifficultySliderCode->GetValue())); }
-	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString::Printf(TEXT("gameoptions hat den value = %i"), GameOptions->NpcDifficulty)); }
-
+	GameOptions->NpcDifficulty = value;	
 }
 
 void UMainUserWidget::ChangeCountdownTime(float value)

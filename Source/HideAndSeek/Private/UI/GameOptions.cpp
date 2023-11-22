@@ -7,8 +7,8 @@ GameOptions::GameOptions()
 	:NpcFieldOfView(90),
 	NpcViewingRange(2000),
 	NpcDifficulty(20),
-	CountdownTime(10),
-	WinTime(1),
+	CountdownTime(30),
+	WinTime(5),
 	realIsometricView(false),
 	firstStart(true)
 {
@@ -26,8 +26,8 @@ void GameOptions::DefaultValues()
 	NpcViewingRange = int(2000);
 	NpcDifficulty = int(20);
 
-	CountdownTime = int(10);
-	WinTime = int(1);
+	CountdownTime = int(30);
+	WinTime = int(5);
 	realIsometricView = bool(true);
 	
 	

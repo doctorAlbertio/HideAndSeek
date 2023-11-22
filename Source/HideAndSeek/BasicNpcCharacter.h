@@ -15,7 +15,9 @@ using GameOptionsPtr = TSharedPtr<GameOptions>;
 #include "BasicNpcCharacter.generated.h"
 
 
-
+/**
+* Basic Npc Class with Basic AI Capability for seeking the Player 
+*/
 UCLASS()
 class HIDEANDSEEK_API ABasicNpcCharacter : public ACharacter
 {
@@ -25,6 +27,7 @@ public:
 	// Sets default values for this character's properties
 	ABasicNpcCharacter();
 
+	//A Searchlight to show the Player the Field of View and the Viewing Range for Playerdetection.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SearchLight, meta = (AllowPrivateAccess = "true"))
 	class USpotLightComponent* SearchLight;
 
@@ -32,18 +35,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called when Npc Start Searching the Player, It chooses a random Position around the Player or a random Point around the next Waypoint
 	virtual void StartSearching();
 
+
+	// A list of waypoints that the NPC can traverse
 	UPROPERTY(EditInstanceOnly, Category = "Components")
 	TArray<AWaypoint*> Waypoints;
-
 	
-
-	// declare overlap begin function
-	UFUNCTION()
-	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -51,33 +50,39 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	
-	void TimeEvent(float Time);
+	//---------------
+	// Events for Events in the Gameloop
+	void StartNPCEvent(float Time);
 
 	void PlayerCaughtEvent(float Time);
 
 	void PlayerWinEvent();
-	
+
+	//---------------
 
 private: 
-	
-		AHideAndSeekCharacter *Player;
 
-		FVector3d LastKnownPlayerPos;
+	//Referenze to the Player Character
+	AHideAndSeekCharacter *Player;
 
-		FAIMoveRequest Request;
+	//Last to the NPC known PlayerPosition, 
+	FVector3d LastKnownPlayerPos;
 
-		float StartDelay;
+	FAIMoveRequest Request;
 
-		FVector3d LastFramePos;
+	//Position of the Last frame to get Movement Threshold for Navigation.
+	FVector3d LastFramePos;
 
-		float RandomTimer;
+	//float RandomTimer;
 
-		int WaypointIndex;
+	// Index of the current Waypoint
+	int WaypointIndex;
 
-		bool IsRunning;
+	// bool to say if the game is running
+	bool IsRunning;
 
-		GameOptionsPtr GameOptions;
+	//Local Reference of the gameoptions for easier Acess
+	GameOptionsPtr GameOptions;
 
 
 

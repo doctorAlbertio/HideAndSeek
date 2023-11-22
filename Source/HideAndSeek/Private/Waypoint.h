@@ -24,12 +24,6 @@ public:
 	// Sets default values for this actor's properties
 	AWaypoint();
 
-	//UPROPERTY(BlueprintReadWrite, Category = Waypoint)
-	//ABasicNpcCharacter* TargetNpc;
-
-	//UPROPERTY(BlueprintReadWrite, Category = Waypoint)
-	//AWaypoint* NextWaypoint;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

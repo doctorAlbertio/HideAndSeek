@@ -20,15 +20,14 @@ AHideAndSeekCharacter::AHideAndSeekCharacter() :
 	IsCountdownRunning(true),
 	GameOptions(),
 	Countdown(10),
-	Playtime(0)
+	Playtime(0),
+	IsRoundRunning(false)
 {
-
+	//Seperate TriggerCapsule for the OnOverlapEvent, the default capsule would not trigger
 	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
 	TriggerCapsule->InitCapsuleSize(55.f, 96.0f);;
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
-
-
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -54,33 +53,19 @@ AHideAndSeekCharacter::AHideAndSeekCharacter() :
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	//CameraBoom = CreateDefaultSubobject<USceneComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 5.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 70000.0f; // The camera follows at this distance the character	
 	CameraBoom->bUsePawnControlRotation = false; // Rotate the arm based on the controller
 
+	//For isometric Look the the Boom needs his own Pitch
 	CameraBoom->bInheritPitch = false;
 
+	//deactivate the Sprin Part of the Spring Arm Component
 	CameraBoom->bDoCollisionTest = false;
 
+	//Rotate the Camera in the Isometric Position
 	CameraBoom->SetRelativeRotation(FQuat(FVector3d(0, 0, 1), double(PI / 4))
 		*FQuat(FVector3d(0, 1, 0), double(PI / 4)/* + LookAxisVector.Y*/));
-
-
 	
-	//TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AUnrealCPPCharacter::OnOverlapEnd);
-
-	//CameraBoom->SetRelativeRotation(FQuat(FVector3d(0, 0, 1), double(PI / 4)/* + LookAxisVector.Y*/));
-
-	//CameraBoom->SetRelativeRotation(FQuat(FVector3d(0, 1, 0), double(PI / 4)/* + LookAxisVector.Y*/));
-
-
-	//FVector2D(1, 0, 0)
-	//FQuat
-
-	
-
-	
-	//AddControllerPitchInput(1000);
-
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -90,33 +75,29 @@ AHideAndSeekCharacter::AHideAndSeekCharacter() :
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
-void AHideAndSeekCharacter::TimeEvent(float Time)
+void AHideAndSeekCharacter::StartNPCEvent(float Time)
 {
-	if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("ich stehe im Timeevent"))); }
-
 	if (OnTimeEvent.IsBound()) {
 		OnTimeEvent.Broadcast(Time);
 	}
 }
 
+//TODO Remove because deprecated
 void AHideAndSeekCharacter::UpdateGUIEvent(float DeltaTime)
 {
 	if (OnUpdateGUIEvent.IsBound()) {
-		//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString("ich calle das UpdateGUI Event ")); }
 		OnUpdateGUIEvent.Broadcast(DeltaTime);
-	}
-	else {
-		//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString("Das Event ist nicht gebundenS ")); }
 	}
 }
 
 void AHideAndSeekCharacter::PlayerCaughtEvent(float DeltaTime)
 {
-	//this->GetController()
 	this->DisableInput(Cast<APlayerController>(GetController()));
 	if (OnPlayerCaughtEvent.IsBound()) {
 		OnPlayerCaughtEvent.Broadcast(DeltaTime);
 	}
+
+	IsRoundRunning = true;
 }
 
 void AHideAndSeekCharacter::PlayerWinEvent()
@@ -125,7 +106,8 @@ void AHideAndSeekCharacter::PlayerWinEvent()
 	if (OnPlayerWinEvent.IsBound()) {
 		OnPlayerWinEvent.Broadcast();
 	}
-	
+
+	IsRoundRunning = true;
 }
 
 void AHideAndSeekCharacter::BeginPlay()
@@ -136,6 +118,7 @@ void AHideAndSeekCharacter::BeginPlay()
 	GameOptions = Cast<UHideAndSeekGameInstance>(GetGameInstance())->getOptions();
 	Countdown = GameOptions->CountdownTime;
 
+	//set CameraMode based on the GameOptions.
 	if (GameOptions->realIsometricView) {
 		FollowCamera->SetProjectionMode(ECameraProjectionMode::Orthographic);
 	}
@@ -143,10 +126,9 @@ void AHideAndSeekCharacter::BeginPlay()
 		FollowCamera->SetProjectionMode(ECameraProjectionMode::Perspective);
 	}
 
-
+	//for the first Start the GameLoop is stopped for the GUI
 	if (GameOptions->firstStart) {
-		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("versuche den npc laufen lassen zu verhindern"), 1)); }
-
+		
 		IsCountdownRunning = false;
 		GameOptions->firstStart = false;
 	}
@@ -160,6 +142,7 @@ void AHideAndSeekCharacter::BeginPlay()
 		}
 	}
 
+	//Adding the Overlap Event to get an Event when NPCs catching the player
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AHideAndSeekCharacter::OnOverlapBegin);
 
 }
@@ -184,7 +167,7 @@ void AHideAndSeekCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHideAndSeekCharacter::Move);
 
 		//Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AHideAndSeekCharacter::Look);
+		//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AHideAndSeekCharacter::Look);
 
 	}
 
@@ -213,75 +196,40 @@ void AHideAndSeekCharacter::Move(const FInputActionValue& Value)
 
 		//RightDirection.RotateAngleAxis(45, FVector3d(0, 0, 1));
 
+		//Rotating the Movement to match the camera view. Makes working in the Editor easier.
 		AddMovementInput(ForwardDirection.RotateAngleAxis(45, FVector3d(0, 0, 1)), MovementVector.Y);
 		AddMovementInput(RightDirection.RotateAngleAxis(45, FVector3d(0,0,1)), MovementVector.X);
 	}
 }
 
-void AHideAndSeekCharacter::Look(const FInputActionValue& Value)
-{
-	//UE_LOG(LogTemp, Warning, Value.Get <FVector2D>());
-
-	//FString string = Value.Get<FVector2f>().ToString();
-
-	//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow,FString( Value.Get <FVector2D>().ToString())); }
-	// input is a Vector2D
-	//FVector2D LookAxisVector = Value.Get<FVector2D>(); 
-	//FVector2D LookAxisVector = FVector2D(Value.Get<FVector2D>().X, 0);
-
-	
-	
-
-	//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString(CameraBoom->GetRelativeRotation().ToString())); }
-	
-
-	if (Controller != nullptr)
-	{
-
-
-		// add yaw and pitch input to controller
-		//AddControllerYawInput(LookAxisVector.X);
-		//AddControllerPitchInput(LookAxisVector.Y);
-	}
-}
-
 void AHideAndSeekCharacter::Tick(const float DeltaTime)
 {
-
+	//Stops the Level and Opens the Menu
 	if (Cast<APlayerController>(Controller)->WasInputKeyJustPressed(EKeys::Escape) ||
 		Cast<APlayerController>(Controller)->WasInputKeyJustPressed(EKeys::Enter)) {
 		PlayerCaughtEvent(DeltaTime);
 	}
 
 	[[UNLIKELY]]
+	//When Countdown a zero, start the the NPC
 	if (Countdown < 0 && IsCountdownRunning && !GameOptions->firstStart) {
-		//1 -= DeltaTime;
-		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Starte mit dem Event den Timer in BasicNpc"), 1)); }
-		TimeEvent(DeltaTime);
+		StartNPCEvent(DeltaTime);
 		IsCountdownRunning = false;
 	
 	}
+	//Counting the Countdown down
 	else if(IsCountdownRunning && !GameOptions->firstStart){
-		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("ich z�hle den countdown runter"), 1)); }
 		Countdown -= DeltaTime;
 	} 
-
-	if (!IsCountdownRunning && Countdown < 0) {
+	//When NPC are running, counts the time until won.
+	if (!IsCountdownRunning && Countdown < 0 && !IsRoundRunning) {
 		if (Playtime < GameOptions->WinTime *60) {
 			Playtime += DeltaTime;
-			if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("ich z�hle die spielzeit hoch: %i"), Playtime)); }
-
 		}
 		else {
-			//StopTimerEvent();
 			PlayerWinEvent();
 		}
 	}
-
-	//if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, FString("hier sollte ich das UpdateGUI Event in Tick ansteuern ")); }
-	//UpdateGUIEvent(DeltaTime);
-
-
 }
 
 void AHideAndSeekCharacter::StartTimerEvent()
@@ -303,21 +251,11 @@ void AHideAndSeekCharacter::OnOverlapBegin(class UPrimitiveComponent* Overlapped
 {
 	if (OtherActor && (OtherActor != this) && OtherComp && !IsCountdownRunning)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
-
-
+		//TODO Parameter deprecated, remove it from event.
 		PlayerCaughtEvent( 420);
 	}
 }
 
-
-/*
-void AMyProject9Character::Crouch(const FInputActionValue& Value)
-{
-	GetCharacterMovement()->bWantsToCrouch = !GetCharacterMovement()->bWantsToCrouch;
-
-}
-*/
 
 
 
