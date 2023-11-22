@@ -8,60 +8,14 @@
 #include "AIController.h"
 #include "AITypes.h"
 #include "GameFramework/Pawn.h"
-//#include "NavigationSystem.h"
-//#include "Runtime/NavigationSystem/Public/NavigationSystem.h"
- #include "NavigationSystem.h"
-//#include <AIController.h>
+#include "NavigationSystem.h"
 #include "GameFramework/Pawn.h"
-//#include "Components/InputComponent.h"
-//#include "GameFramework/Character.h"
-//#include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 #include "UI/GameOptions.h"
-
-
 #include "HideAndSeekCharacter.h"
 #include "Waypoint.h"
 #include <Engine/SpotLight.h>
 #include <HideAndSeekGameInstance.h>
-
-//TODO -----CODE------
-//	//DONE Rausfinden, wie man die zeitdaten am besten global verarbeitet.
-//  //DONE Rausfinden, wie man level reloadet bzw andere lädt
-//  //DONE Rausfinden, wie ich die lichtfarbe bei den NPC anpassen kann.
-//  //DONE Rausfinden, wie man das Kontakt Event im Code triggern kann.
-//  //TODO Einbauen, dass man das Spiel gewinnen kann.
-//  //DONE umbauen, das man im Menu anfängt
-//  //TODO mit ESC ins Menu gehen,
-//TODO -----GUI------
-//	//DONE Uhr einbauen 
-//  //DONE Maussteuerung in Menu ermöglichen
-//  //DONE Menu einbauen
-//  //TODO Highscore evt.
-//  //DONE Spiel Beenden
-// 
-// 
-// 
-//TODO -----KI------
-//  //DONE Winkel einstellbar machen
-//  //DONE Max Seeing Range einbauen evt.
-//  //DONE Max Seeing Range einstellbar machen
-//  //TODO Geräuschkonzept einbauen, 
-//		//TODO Geräusche durch laufen (evt laufgeschwindigkeit und springen)
-//		//TODO Ehm Entfernung zum NPC skaliert mit NPC movement und Interpoliert den Laufweg mehr zu ihm
-//  //TODO Mit vergehenden Zeit NPC näher zum Spieler kommen lassen.
-//  //TODO Wenn er den kontakt verliert, einmal umgucken lassen
-//  //TODO Momentum geben, damit sie nicht auf der stelle drehen
-//  //TODO KI kommt näher an dich ran, wenn du dich zu wenig bewegstw
-//TODO -----World------
-//	//TODO Evt kleiner machen
-//  //TODO Evt mehr licht verbauen.
-//TODO
-//TODO ----Optimizen-----
-//	//TODO ConsumeMovementInputVector angucken um KI sauberer zu machen
-
-
 
 // Sets default values
 ABasicNpcCharacter::ABasicNpcCharacter()
